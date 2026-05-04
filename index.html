@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FinControl — Controle Financeiro</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#1D9E75;--gbg:#E1F5EE;--gdk:#085041;
+  --r:#D85A30;--rbg:#FAECE7;--rdk:#4A1B0C;
+  --a:#BA7517;--abg:#FAEEDA;--adk:#412402;
+  --b:#378ADD;--bbg:#E6F1FB;--bdk:#0C447C;
+  --bg:#f5f5f2;--su:#fff;--br:rgba(0,0,0,0.09);
+  --t:#1a1a1a;--t2:#666;--t3:#999;
+  --rd:10px;--rs:6px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--t);font-size:14px;line-height:1.5}
+.shell{display:flex;min-height:100vh}
+.sidebar{width:196px;background:var(--su);border-right:1px solid var(--br);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100}
+.main{margin-left:196px;flex:1;padding:24px;max-width:940px}
+.brand{padding:18px 16px 14px;border-bottom:1px solid var(--br)}
+.brand-name{font-size:16px;font-weight:700;color:var(--t)}
+.brand-sub{font-size:11px;color:var(--t3);margin-top:1px}
+nav{padding:8px 0;flex:1}
+.nl{display:flex;align-items:center;gap:9px;padding:10px 16px;font-size:13px;color:var(--t2);cursor:pointer;border-left:2px solid transparent}
+.nl:hover{color:var(--t);background:#f8f8f6}
+.nl.active{color:var(--t);font-weight:600;border-left:2px solid var(--g);background:#f0faf6}
+.ni{font-size:14px;width:17px;text-align:center}
+.sf{padding:12px 16px;border-top:1px solid var(--br);font-size:11px;color:var(--t3)}
+.page{display:none}.page.active{display:block}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.pt{font-size:20px;font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:12px;margin-bottom:20px}
+.card{background:var(--su);border:1px solid var(--br);border-radius:var(--rd);padding:16px}
+.cl{font-size:11px;color:var(--t2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.cv{font-size:22px;font-weight:700}
+.cs{font-size:11px;color:var(--t3);margin-top:3px}
+.green{color:var(--g)}.red{color:var(--r)}.amber{color:var(--a)}.blue{color:var(--b)}
+.box{background:var(--su);border:1px solid var(--br);border-radius:var(--rd);overflow:hidden;margin-bottom:16px}
+.bh{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--br);background:#fafafa}
+.bt{font-size:13px;font-weight:600}
+.bm{font-size:12px;color:var(--t2)}
+table{width:100%;border-collapse:collapse}
+th{padding:8px 14px;text-align:left;font-size:11px;color:var(--t2);font-weight:500;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--br)}
+td{padding:10px 14px;border-bottom:1px solid var(--br);font-size:13px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.vg{color:var(--g);font-weight:600}
+.vr{color:var(--r);font-weight:600}
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500}
+.bg2{background:var(--gbg);color:var(--gdk)}
+.br2{background:var(--rbg);color:var(--rdk)}
+.ba{background:var(--abg);color:var(--adk)}
+.bb{background:var(--bbg);color:var(--bdk)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--rs);border:1px solid var(--br);background:var(--su);font-size:13px;cursor:pointer;color:var(--t);font-weight:500;transition:all .15s}
+.btn:hover{background:#f5f5f2}
+.btnp{background:var(--g);color:#fff;border-color:var(--g)}
+.btnp:hover{background:var(--gdk)}
+.btns{padding:4px 10px;font-size:12px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--su);border-radius:var(--rd);padding:24px;width:100%;max-width:420px;border:1px solid var(--br);max-height:90vh;overflow-y:auto}
+.mt{font-size:16px;font-weight:700;margin-bottom:18px}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:12px;color:var(--t2);margin-bottom:5px;font-weight:500}
+.fi{width:100%;padding:9px 12px;border:1px solid var(--br);border-radius:var(--rs);font-size:13px;color:var(--t);background:var(--su);outline:none}
+.fi:focus{border-color:var(--g)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tg{display:flex;gap:8px}
+.to{flex:1;padding:8px;text-align:center;border:1px solid var(--br);border-radius:var(--rs);font-size:12px;cursor:pointer;color:var(--t2)}
+.to.sg{background:var(--gbg);border-color:var(--g);color:var(--gdk);font-weight:600}
+.to.sr{background:var(--rbg);border-color:var(--r);color:var(--rdk);font-weight:600}
+.ma{display:flex;gap:8px;margin-top:20px;justify-content:flex-end}
+.empty{padding:32px;text-align:center;color:var(--t3);font-size:13px}
+.mn{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.mb{background:var(--su);border:1px solid var(--br);border-radius:var(--rs);padding:6px 14px;cursor:pointer;font-size:15px;color:var(--t);font-weight:600}
+.mb:hover{background:#f5f5f2}
+.ml{font-size:15px;font-weight:700;min-width:170px;text-align:center}
+.flux-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:8px}
+.fdn{font-size:11px;color:var(--t3);text-align:center;padding:4px 0;font-weight:600}
+.fd{border:1px solid var(--br);border-radius:8px;padding:7px 5px;min-height:76px;background:var(--su);cursor:pointer;transition:border-color .15s}
+.fd:hover{border-color:var(--g)}
+.fd.today{border-color:var(--b);background:var(--bbg)}
+.fd.emp{background:transparent;border-color:transparent;cursor:default}
+.fd.emp:hover{border-color:transparent}
+.fd.danger{border-color:var(--r);background:var(--rbg)}
+.fd.warn{border-color:var(--a);background:var(--abg)}
+.fd.ok{border-color:#c0e0d0;background:var(--gbg)}
+.dn{font-size:11px;font-weight:700;color:var(--t2);margin-bottom:3px}
+.fd.today .dn{color:var(--bdk)}
+.db{font-size:12px;font-weight:700}
+.devs{margin-top:3px;display:flex;flex-direction:column;gap:2px}
+.dev{font-size:10px;padding:1px 4px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.devg{background:var(--gbg);color:var(--gdk)}
+.devr{background:var(--rbg);color:var(--rdk)}
+.cw{position:relative;height:200px;margin:0}
+.sim{background:var(--gbg);border:1px solid #a0d8c0;border-radius:var(--rd);padding:18px;margin-bottom:20px}
+.sim-t{font-size:14px;font-weight:700;color:var(--gdk);margin-bottom:3px}
+.sim-s{font-size:12px;color:var(--t2);margin-bottom:14px}
+.sim-row{display:flex;gap:10px;align-items:flex-end}
+.sim-res{margin-top:14px;padding:12px 14px;border-radius:var(--rs);font-size:13px;font-weight:500;line-height:1.5}
+.s-ok{background:var(--gbg);color:var(--gdk);border:1px solid #a0d8c0}
+.s-wn{background:var(--abg);color:var(--adk);border:1px solid #f0c060}
+.s-er{background:var(--rbg);color:var(--rdk);border:1px solid #f0a090}
+.pw{background:#eee;border-radius:4px;height:6px;overflow:hidden;margin-top:8px}
+.pf{height:100%;border-radius:4px}
+.dc{background:var(--su);border:1px solid var(--br);border-radius:var(--rd);padding:16px;margin-bottom:10px}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.dn2{font-size:14px;font-weight:700}
+.dp{font-size:12px;color:var(--t2);margin-top:2px}
+.info-box{background:var(--bbg);border:1px solid #a0c0e8;border-radius:var(--rs);padding:10px 12px;font-size:12px;color:var(--bdk);margin-bottom:14px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="sidebar">
+    <div class="brand">
+      <div class="brand-name">FinControl</div>
+      <div class="brand-sub">controle da família</div>
+    </div>
+    <nav>
+      <div class="nl active" data-page="fluxo"><span class="ni">📅</span>Fluxo de caixa</div>
+      <div class="nl" data-page="receitas"><span class="ni">↑</span>Receitas</div>
+      <div class="nl" data-page="despesas"><span class="ni">↓</span>Despesas</div>
+      <div class="nl" data-page="dividas"><span class="ni">💳</span>Dívidas</div>
+      <div class="nl" data-page="resumo"><span class="ni">◎</span>Resumo</div>
+    </nav>
+    <div class="sf">Salvo no seu navegador</div>
+  </div>
+
+  <div class="main">
+
+    <!-- FLUXO -->
+    <div class="page active" id="page-fluxo">
+      <div class="ph">
+        <div class="pt">Fluxo de caixa</div>
+        <button class="btn btnp" onclick="openModal('lanc')">+ Lançar gasto/entrada</button>
+      </div>
+
+      <div class="sim">
+        <div class="sim-t">🤔 Posso gastar isso agora?</div>
+        <div class="sim-s">Coloque o valor e o dia — o sistema mostra se o dinheiro vai faltar depois</div>
+        <div class="sim-row">
+          <div style="flex:1">
+            <label class="fl">Valor que quero gastar (R$)</label>
+            <input class="fi" type="number" id="sv" placeholder="Ex: 300" oninput="simular()"/>
+          </div>
+          <div style="flex:1">
+            <label class="fl">Em qual dia do mês</label>
+            <input class="fi" type="number" id="sd" placeholder="Ex: 18" min="1" max="31" oninput="simular()"/>
+          </div>
+        </div>
+        <div id="sres" style="display:none" class="sim-res"></div>
+      </div>
+
+      <div class="box" style="margin-bottom:16px">
+        <div class="bh">
+          <span class="bt">Saldo atual na conta</span>
+          <button class="btn btns" onclick="editSaldo()">Editar</button>
+        </div>
+        <div style="padding:14px 16px;display:flex;align-items:center;gap:16px">
+          <div style="font-size:26px;font-weight:700" id="sid"></div>
+          <div style="font-size:12px;color:var(--t2);max-width:280px">Este é o dinheiro que você tem hoje. O sistema calcula o saldo de cada dia a partir daqui, somando entradas e subtraindo saídas.</div>
+        </div>
+      </div>
+
+      <div class="mn">
+        <button class="mb" onclick="chM(-1)">‹</button>
+        <div class="ml" id="fml"></div>
+        <button class="mb" onclick="chM(1)">›</button>
+        <div style="margin-left:auto;display:flex;gap:12px;font-size:11px;align-items:center;color:var(--t2)">
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--gbg);border:1px solid var(--g);margin-right:4px"></span>Tranquilo</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--abg);border:1px solid var(--a);margin-right:4px"></span>Baixo</span>
+          <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--rbg);border:1px solid var(--r);margin-right:4px"></span>Negativo</span>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="bh"><span class="bt">Saldo de cada dia</span><span class="bm" id="fsm"></span></div>
+        <div style="padding:12px">
+          <div class="flux-grid" id="fdnames"></div>
+          <div class="flux-grid" id="fcal"></div>
+        </div>
+      </div>
+
+      <div class="box">
+        <div class="bh"><span class="bt">Curva do saldo no mês</span></div>
+        <div style="padding:16px"><div class="cw"><canvas id="cf" role="img" aria-label="Gráfico de evolução do saldo diário"></canvas></div></div>
+      </div>
+
+      <div class="box">
+        <div class="bh">
+          <span class="bt">Lançamentos avulsos deste mês</span>
+          <button class="btn btns btnp" onclick="openModal('lanc')">+ Novo</button>
+        </div>
+        <div id="llanc"></div>
+      </div>
+    </div>
+
+    <!-- RECEITAS -->
+    <div class="page" id="page-receitas">
+      <div class="ph">
+        <div class="pt">Receitas</div>
+        <button class="btn btnp" onclick="openModal('rec')">+ Adicionar</button>
+      </div>
+      <div class="cards" id="crec"></div>
+      <div class="box">
+        <div class="bh"><span class="bt">Fixas — entram todo mês</span><span class="bm" id="trfi"></span></div>
+        <div id="lrfi"></div>
+      </div>
+      <div class="box">
+        <div class="bh"><span class="bt">Variáveis — entradas avulsas</span><span class="bm" id="trva"></span></div>
+        <div id="lrva"></div>
+      </div>
+    </div>
+
+    <!-- DESPESAS -->
+    <div class="page" id="page-despesas">
+      <div class="ph">
+        <div class="pt">Despesas</div>
+        <button class="btn btnp" onclick="openModal('desp')">+ Adicionar</button>
+      </div>
+      <div class="cards" id="cdesp"></div>
+      <div class="box">
+        <div class="bh"><span class="bt">Fixas — saem todo mês</span><span class="bm" id="tdfi"></span></div>
+        <div id="ldfi"></div>
+      </div>
+      <div class="box">
+        <div class="bh"><span class="bt">Variáveis — gastos avulsos</span><span class="bm" id="tdva"></span></div>
+        <div id="ldva"></div>
+      </div>
+    </div>
+
+    <!-- DIVIDAS -->
+    <div class="page" id="page-dividas">
+      <div class="ph">
+        <div class="pt">Dívidas</div>
+        <button class="btn btnp" onclick="openModal('div')">+ Adicionar</button>
+      </div>
+      <div class="cards" id="cdiv"></div>
+      <div id="ldiv"></div>
+    </div>
+
+    <!-- RESUMO -->
+    <div class="page" id="page-resumo">
+      <div class="ph"><div class="pt">Resumo mensal</div></div>
+      <div class="cards" id="cres"></div>
+      <div class="box">
+        <div class="bh"><span class="bt">Para onde vai o dinheiro</span></div>
+        <div style="padding:16px"><div class="cw"><canvas id="crs" role="img" aria-label="Gráfico de distribuição de receitas e despesas"></canvas></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="mbg">
+  <div class="modal" id="min"></div>
+</div>
+
+<script>
+const MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const WD=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+const DEF={
+  saldo:3200,
+  receitas:[
+    {id:1,desc:'Salário Jorge',val:5000,freq:'fixa',dia:5,cat:'Trabalho'},
+    {id:2,desc:'Salário Grasiela',val:3800,freq:'fixa',dia:7,cat:'Trabalho'},
+  ],
+  despesas:[
+    {id:1,desc:'Aluguel',val:1500,freq:'fixa',dia:5,cat:'Moradia'},
+    {id:2,desc:'Internet',val:120,freq:'fixa',dia:10,cat:'Moradia'},
+    {id:3,desc:'Plano de saúde',val:380,freq:'fixa',dia:15,cat:'Saúde'},
+    {id:4,desc:'Supermercado',val:800,freq:'fixa',dia:20,cat:'Alimentação'},
+    {id:5,desc:'Combustível',val:350,freq:'fixa',dia:25,cat:'Transporte'},
+  ],
+  dividas:[
+    {id:1,desc:'Cartão de crédito',total:3600,parcela:300,atual:4,parc:12,dia:15,status:'ativa'},
+    {id:2,desc:'Financiamento carro',total:18000,parcela:680,atual:8,parc:36,dia:28,status:'ativa'},
+  ],
+  lancs:[]
+};
+
+function load(){try{const s=localStorage.getItem('fc2');return s?JSON.parse(s):JSON.parse(JSON.stringify(DEF))}catch(e){return JSON.parse(JSON.stringify(DEF))}}
+function save(){localStorage.setItem('fc2',JSON.stringify(db))}
+
+let db=load();
+let nid=2000;
+let fm=new Date().getMonth(),fy=new Date().getFullYear();
+let cf=null,cr=null;
+let mTipo='',mFreq='fixa',mLancTipo='saida';
+
+function brl(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v)}
+function brs(v){const a=Math.abs(v);if(a>=1000)return(v<0?'-':'')+'R$'+(a/1000).toFixed(1)+'k';return brl(v)}
+
+// NAV
+document.querySelectorAll('.nl').forEach(el=>{
+  el.addEventListener('click',()=>{
+    document.querySelectorAll('.nl').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('page-'+el.dataset.page).classList.add('active');
+    renderAll();
+  });
+});
+
+// FLUXO DIÁRIO
+function calcFluxo(mes,ano){
+  const hoje=new Date();
+  const dim=new Date(ano,mes+1,0).getDate();
+  const evs={};
+  for(let d=1;d<=dim;d++)evs[d]=[];
+
+  db.receitas.filter(r=>r.freq==='fixa').forEach(r=>evs[Math.min(r.dia,dim)].push({tipo:'e',desc:r.desc,val:r.val}));
+  db.despesas.filter(d=>d.freq==='fixa').forEach(d=>evs[Math.min(d.dia,dim)].push({tipo:'s',desc:d.desc,val:d.val}));
+  db.dividas.filter(d=>d.status==='ativa').forEach(d=>evs[Math.min(d.dia,dim)].push({tipo:'s',desc:d.desc+' (parcela)',val:d.parcela}));
+  (db.lancs||[]).filter(l=>l.mes===mes&&l.ano===ano).forEach(l=>evs[Math.min(l.dia,dim)].push({tipo:l.tipo,desc:l.desc,val:l.val}));
+
+  let saldo=db.saldo;
+  const dias=[];
+  for(let d=1;d<=dim;d++){
+    evs[d].forEach(e=>{saldo=e.tipo==='e'?saldo+e.val:saldo-e.val});
+    dias.push({dia:d,saldo:Math.round(saldo*100)/100,evs:evs[d],hoje:(d===hoje.getDate()&&mes===hoje.getMonth()&&ano===hoje.getFullYear())});
+  }
+  return dias;
+}
+
+function renderFluxo(){
+  document.getElementById('fml').textContent=MONTHS[fm]+' '+fy;
+  document.getElementById('sid').textContent=brl(db.saldo);
+  document.getElementById('sid').className=db.saldo>=0?'green':'red';
+
+  const dias=calcFluxo(fm,fy);
+  const dim=dias.length;
+  const sf=dias[dim-1]?.saldo||0;
+  const neg=dias.filter(d=>d.saldo<0).length;
+  document.getElementById('fsm').textContent='Saldo final: '+brl(sf)+(neg>0?' · '+neg+' dia(s) negativo(s)':'');
+
+  // cabeçalho semana
+  document.getElementById('fdnames').innerHTML=WD.map(d=>`<div class="fdn">${d}</div>`).join('');
+
+  const prim=new Date(fy,fm,1).getDay();
+  let cells='';
+  for(let i=0;i<prim;i++)cells+='<div class="fd emp"></div>';
+  dias.forEach(d=>{
+    let cls='fd';
+    if(d.hoje)cls+=' today';
+    else if(d.saldo<0)cls+=' danger';
+    else if(d.saldo<500)cls+=' warn';
+    else cls+=' ok';
+
+    const ev2=d.evs.slice(0,2).map(e=>`<div class="dev ${e.tipo==='e'?'devg':'devr'}">${e.tipo==='e'?'+':'-'}${brs(e.val)} ${e.desc}</div>`).join('');
+    const mais=d.evs.length>2?`<div class="dev" style="color:var(--t3)">+${d.evs.length-2}</div>`:'';
+
+    cells+=`<div class="${cls}" onclick="verDia(${d.dia})">
+      <div class="dn">${d.dia}</div>
+      <div class="db ${d.saldo>=0?'green':'red'}">${brs(d.saldo)}</div>
+      <div class="devs">${ev2}${mais}</div>
+    </div>`;
+  });
+  document.getElementById('fcal').innerHTML=cells;
+
+  // gráfico
+  const labels=dias.map(d=>d.dia);
+  const saldos=dias.map(d=>d.saldo);
+  const pts=saldos.map(s=>s<0?'#D85A30':s<500?'#BA7517':'#1D9E75');
+  if(cf)cf.destroy();
+  const ctx=document.getElementById('cf').getContext('2d');
+  cf=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'Saldo',data:saldos,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.07)',pointBackgroundColor:pts,pointRadius:3,tension:0.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'Saldo: '+brl(c.raw)}}},scales:{y:{ticks:{callback:v=>brs(v)},grid:{color:'rgba(0,0,0,0.05)'}},x:{grid:{display:false}}}}});
+
+  // lançamentos
+  const lancs=(db.lancs||[]).filter(l=>l.mes===fm&&l.ano===fy).sort((a,b)=>a.dia-b.dia);
+  const ll=document.getElementById('llanc');
+  ll.innerHTML=lancs.length?`<table><thead><tr><th>Dia</th><th>Descrição</th><th>Tipo</th><th style="text-align:right">Valor</th><th></th></tr></thead><tbody>`+
+    lancs.map(l=>`<tr><td>dia ${l.dia}</td><td>${l.desc}</td><td><span class="badge ${l.tipo==='e'?'bg2':'br2'}">${l.tipo==='e'?'Entrada':'Saída'}</span></td><td class="${l.tipo==='e'?'vg':'vr'}" style="text-align:right">${brl(l.val)}</td><td><button class="btn btns" onclick="delLanc(${l.id})" style="color:var(--r);border-color:transparent;background:transparent">✕</button></td></tr>`).join('')+'</tbody></table>':
+    '<div class="empty">Nenhum lançamento avulso neste mês.<br>Use "+ Lançar" para gastos ou recebimentos extras.</div>';
+}
+
+function verDia(d){
+  const dias=calcFluxo(fm,fy);
+  const dia=dias.find(x=>x.dia===d);
+  if(!dia)return;
+  alert('Dia '+d+' de '+MONTHS[fm]+'\nSaldo: '+brl(dia.saldo)+'\n\n'+(dia.evs.length?dia.evs.map(e=>(e.tipo==='e'?'⬆ ENTRADA':'⬇ SAÍDA')+' — '+e.desc+': '+brl(e.val)).join('\n'):'Nenhum evento neste dia.'));
+}
+
+function chM(d){fm+=d;if(fm>11){fm=0;fy++}if(fm<0){fm=11;fy--}renderFluxo()}
+
+// SIMULADOR
+function simular(){
+  const val=parseFloat(document.getElementById('sv').value);
+  const dia=parseInt(document.getElementById('sd').value);
+  const el=document.getElementById('sres');
+  if(!val||!dia||dia<1||dia>31){el.style.display='none';return}
+  const dias=calcFluxo(fm,fy);
+  const dim=dias.length;
+  if(dia>dim){el.style.display='none';return}
+  const saldoAntes=dia<=1?db.saldo:dias[dia-2].saldo;
+  let menor=saldoAntes-val;
+  for(let i=dia-1;i<dias.length;i++){
+    const s=dias[i].saldo-val;
+    if(s<menor)menor=s;
+  }
+  const sfinal=dias[dim-1].saldo-val;
+  el.style.display='block';
+  if(menor<0){
+    el.className='sim-res s-er';
+    el.innerHTML='⚠️ <strong>Não recomendado.</strong> Seu saldo ficaria negativo em algum momento do mês. Menor saldo seria '+brl(menor)+'. Tem compromissos financeiros à frente que não vão fechar.';
+  }else if(menor<500){
+    el.className='sim-res s-wn';
+    el.innerHTML='⚡ <strong>Cuidado.</strong> Dá pra fazer, mas o saldo vai ficar bem baixo (mínimo: '+brl(menor)+'). Se aparecer qualquer emergência, vai apertar. Saldo final: '+brl(sfinal)+'.';
+  }else{
+    el.className='sim-res s-ok';
+    el.innerHTML='✅ <strong>Pode gastar!</strong> Mesmo com esse gasto, o menor saldo do mês seria '+brl(menor)+'. Saldo final do mês: '+brl(sfinal)+'.';
+  }
+}
+
+function editSaldo(){
+  const v=prompt('Quanto tem na conta agora? (R$)',db.saldo);
+  if(v===null)return;
+  const n=parseFloat(v.replace(',','.'));
+  if(!isNaN(n)){db.saldo=n;save();renderAll();}
+}
+
+// RECEITAS
+function renderReceitas(){
+  const fi=db.receitas.filter(r=>r.freq==='fixa');
+  const va=db.receitas.filter(r=>r.freq==='variavel');
+  const tf=fi.reduce((a,r)=>a+r.val,0);
+  const tv=va.reduce((a,r)=>a+r.val,0);
+  document.getElementById('crec').innerHTML=`
+    <div class="card"><div class="cl">Total mensal</div><div class="cv green">${brl(tf+tv)}</div></div>
+    <div class="card"><div class="cl">Fixas</div><div class="cv">${brl(tf)}</div><div class="cs">${fi.length} item(ns)</div></div>
+    <div class="card"><div class="cl">Variáveis</div><div class="cv">${brl(tv)}</div><div class="cs">${va.length} item(ns)</div></div>`;
+  document.getElementById('trfi').textContent=brl(tf);
+  document.getElementById('trva').textContent=brl(tv);
+  function rows(arr,id){
+    document.getElementById(id).innerHTML=arr.length?`<table><thead><tr><th>Descrição</th><th>Dia do mês</th><th>Categoria</th><th style="text-align:right">Valor</th><th></th></tr></thead><tbody>`+
+      arr.map(r=>`<tr><td>${r.desc}</td><td>dia ${r.dia}</td><td><span class="badge bg2">${r.cat}</span></td><td class="vg" style="text-align:right">${brl(r.val)}</td><td><button class="btn btns" onclick="del('receitas',${r.id})" style="color:var(--r);border-color:transparent;background:transparent">✕</button></td></tr>`).join('')+'</tbody></table>':
+      '<div class="empty">Nenhuma receita. Clique em + Adicionar.</div>';
+  }
+  rows(fi,'lrfi');rows(va,'lrva');
+}
+
+// DESPESAS
+function renderDespesas(){
+  const fi=db.despesas.filter(d=>d.freq==='fixa');
+  const va=db.despesas.filter(d=>d.freq==='variavel');
+  const tf=fi.reduce((a,d)=>a+d.val,0);
+  const tv=va.reduce((a,d)=>a+d.val,0);
+  document.getElementById('cdesp').innerHTML=`
+    <div class="card"><div class="cl">Total mensal</div><div class="cv red">${brl(tf+tv)}</div></div>
+    <div class="card"><div class="cl">Fixas</div><div class="cv">${brl(tf)}</div><div class="cs">${fi.length} item(ns)</div></div>
+    <div class="card"><div class="cl">Variáveis</div><div class="cv">${brl(tv)}</div><div class="cs">${va.length} item(ns)</div></div>`;
+  document.getElementById('tdfi').textContent=brl(tf);
+  document.getElementById('tdva').textContent=brl(tv);
+  function rows(arr,id){
+    document.getElementById(id).innerHTML=arr.length?`<table><thead><tr><th>Descrição</th><th>Dia do mês</th><th>Categoria</th><th style="text-align:right">Valor</th><th></th></tr></thead><tbody>`+
+      arr.map(d=>`<tr><td>${d.desc}</td><td>dia ${d.dia}</td><td><span class="badge br2">${d.cat}</span></td><td class="vr" style="text-align:right">${brl(d.val)}</td><td><button class="btn btns" onclick="del('despesas',${d.id})" style="color:var(--r);border-color:transparent;background:transparent">✕</button></td></tr>`).join('')+'</tbody></table>':
+      '<div class="empty">Nenhuma despesa. Clique em + Adicionar.</div>';
+  }
+  rows(fi,'ldfi');rows(va,'ldva');
+}
+
+// DÍVIDAS
+function renderDividas(){
+  const at=db.dividas.filter(d=>d.status==='ativa');
+  const tp=at.reduce((a,d)=>a+d.parcela,0);
+  const tr=at.reduce((a,d)=>a+d.parcela*(d.parc-d.atual+1),0);
+  document.getElementById('cdiv').innerHTML=`
+    <div class="card"><div class="cl">Parcelas/mês</div><div class="cv red">${brl(tp)}</div></div>
+    <div class="card"><div class="cl">Total restante</div><div class="cv amber">${brl(tr)}</div></div>
+    <div class="card"><div class="cl">Ativas</div><div class="cv">${at.length}</div></div>`;
+  document.getElementById('ldiv').innerHTML=db.dividas.length?db.dividas.map(d=>{
+    const pct=Math.round((d.atual/d.parc)*100);
+    const rest=d.parcela*(d.parc-d.atual+1);
+    const bc=d.status==='paga'?'bg2':d.status==='atrasada'?'br2':'ba';
+    const bl=d.status==='paga'?'Paga':d.status==='atrasada'?'Atrasada':'Em dia';
+    return`<div class="dc">
+      <div class="dh">
+        <div><div class="dn2">${d.desc}</div><div class="dp">Parcela ${d.atual} de ${d.parc} · vence dia ${d.dia}</div></div>
+        <div style="text-align:right">
+          <div style="font-size:20px;font-weight:700;color:var(--r)">${brl(d.parcela)}<span style="font-size:12px;font-weight:400;color:var(--t2)">/mês</span></div>
+          <div style="font-size:12px;color:var(--t2)">Restam ${brl(rest)}</div>
+          <span class="badge ${bc}" style="margin-top:4px;display:inline-block">${bl}</span>
+        </div>
+      </div>
+      <div class="pw"><div class="pf" style="width:${pct}%;background:${d.status==='paga'?'var(--g)':'var(--r)'}"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--t3)">
+        <span>${pct}% quitado</span>
+        <button class="btn btns" onclick="del('dividas',${d.id})" style="font-size:11px;color:var(--r);border:none;background:transparent;padding:0;cursor:pointer">Remover</button>
+      </div>
+    </div>`;}).join(''):'<div class="empty">Nenhuma dívida cadastrada.</div>';
+}
+
+// RESUMO
+function renderResumo(){
+  const tr=db.receitas.reduce((a,r)=>a+r.val,0);
+  const td=db.despesas.reduce((a,d)=>a+d.val,0);
+  const tv=db.dividas.filter(d=>d.status==='ativa').reduce((a,d)=>a+d.parcela,0);
+  const sl=tr-td-tv;
+  document.getElementById('cres').innerHTML=`
+    <div class="card"><div class="cl">Receita mensal</div><div class="cv green">${brl(tr)}</div></div>
+    <div class="card"><div class="cl">Despesas fixas</div><div class="cv red">${brl(td)}</div></div>
+    <div class="card"><div class="cl">Parcelas</div><div class="cv amber">${brl(tv)}</div></div>
+    <div class="card"><div class="cl">Sobra por mês</div><div class="cv ${sl>=0?'green':'red'}">${brl(sl)}</div></div>`;
+  if(cr)cr.destroy();
+  const ctx=document.getElementById('crs').getContext('2d');
+  cr=new Chart(ctx,{type:'bar',data:{labels:['Receitas','Despesas fixas','Parcelas dívidas','Saldo livre'],datasets:[{data:[tr,td,tv,Math.max(0,sl)],backgroundColor:['#1D9E75','#D85A30','#BA7517','#378ADD'],borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'R$ '+c.raw.toLocaleString('pt-BR')}}},scales:{y:{ticks:{callback:v=>brs(v)},grid:{color:'rgba(0,0,0,0.05)'}},x:{grid:{display:false}}}}});
+}
+
+// MODAIS
+const CREC=['Trabalho','Aluguel','Investimento','Outros'];
+const CDESP=['Moradia','Alimentação','Transporte','Saúde','Educação','Lazer','Outros'];
+
+function openModal(tipo){
+  mTipo=tipo;mFreq='fixa';mLancTipo='saida';
+  const bg=document.getElementById('mbg');
+  const mi=document.getElementById('min');
+  bg.classList.add('open');
+
+  if(tipo==='rec'){
+    mi.innerHTML=`<div class="mt">Nova receita</div>
+      <div class="fg"><label class="fl">De onde vem esse dinheiro?</label><input class="fi" id="md" placeholder="Ex: Salário, Freelance, Aluguel..."/></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Valor (R$)</label><input class="fi" id="mv" type="number" min="0" step="0.01" placeholder="0,00"/></div>
+        <div class="fg"><label class="fl">Dia que cai na conta</label><input class="fi" id="mdia" type="number" min="1" max="31" placeholder="Ex: 5"/></div>
+      </div>
+      <div class="fg"><label class="fl">Categoria</label><select class="fi" id="mcat">${CREC.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="fg"><label class="fl">Entra todo mês?</label>
+        <div class="tg">
+          <div class="to sg" id="tfi" onclick="setFreq('fixa','g')">Sim, todo mês</div>
+          <div class="to" id="tva" onclick="setFreq('variavel','g')">Não, foi uma vez</div>
+        </div>
+      </div>
+      <div class="ma"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btnp" onclick="saveModal()">Salvar receita</button></div>`;
+  } else if(tipo==='desp'){
+    mi.innerHTML=`<div class="mt">Nova despesa</div>
+      <div class="fg"><label class="fl">O que é esse gasto?</label><input class="fi" id="md" placeholder="Ex: Supermercado, Academia, Escola..."/></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Valor (R$)</label><input class="fi" id="mv" type="number" min="0" step="0.01" placeholder="0,00"/></div>
+        <div class="fg"><label class="fl">Dia que vence/paga</label><input class="fi" id="mdia" type="number" min="1" max="31" placeholder="Ex: 10"/></div>
+      </div>
+      <div class="fg"><label class="fl">Categoria</label><select class="fi" id="mcat">${CDESP.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="fg"><label class="fl">Sai todo mês?</label>
+        <div class="tg">
+          <div class="to sr" id="tfi" onclick="setFreq('fixa','r')">Sim, todo mês</div>
+          <div class="to" id="tva" onclick="setFreq('variavel','r')">Não, foi uma vez</div>
+        </div>
+      </div>
+      <div class="ma"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btnp" onclick="saveModal()">Salvar despesa</button></div>`;
+  } else if(tipo==='div'){
+    mi.innerHTML=`<div class="mt">Nova dívida</div>
+      <div class="fg"><label class="fl">Qual é a dívida?</label><input class="fi" id="md" placeholder="Ex: Cartão Nubank, Financiamento carro..."/></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Valor da parcela (R$)</label><input class="fi" id="mparc" type="number" min="0" step="0.01" placeholder="Ex: 350"/></div>
+        <div class="fg"><label class="fl">Total de parcelas</label><input class="fi" id="mtparc" type="number" min="1" placeholder="Ex: 12"/></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Parcela atual (qual número)</label><input class="fi" id="matu" type="number" min="1" placeholder="Ex: 3"/></div>
+        <div class="fg"><label class="fl">Dia do vencimento</label><input class="fi" id="mdia" type="number" min="1" max="31" placeholder="Ex: 15"/></div>
+      </div>
+      <div class="ma"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btnp" onclick="saveModal()">Salvar dívida</button></div>`;
+  } else if(tipo==='lanc'){
+    mi.innerHTML=`<div class="mt">Lançar entrada ou saída</div>
+      <div class="info-box">Use para registrar um gasto ou recebimento em um dia específico do mês. O calendário de fluxo de caixa se ajusta automaticamente.</div>
+      <div class="fg"><label class="fl">O que foi?</label><input class="fi" id="md" placeholder="Ex: Conta de luz, Presente, Conserto..."/></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Valor (R$)</label><input class="fi" id="mv" type="number" min="0" step="0.01" placeholder="0,00"/></div>
+        <div class="fg"><label class="fl">Dia do mês</label><input class="fi" id="mdia" type="number" min="1" max="31" placeholder="Ex: 18"/></div>
+      </div>
+      <div class="fg"><label class="fl">Entrou ou saiu?</label>
+        <div class="tg">
+          <div class="to" id="tent" onclick="setLancTipo('e')">Entrou dinheiro</div>
+          <div class="to sr" id="tsai" onclick="setLancTipo('s')">Saiu dinheiro</div>
+        </div>
+      </div>
+      <div class="ma"><button class="btn" onclick="closeModal()">Cancelar</button><button class="btn btnp" onclick="saveModal()">Lançar</button></div>`;
+    mLancTipo='s';
+  }
+}
+
+function setFreq(f,cor){
+  mFreq=f;
+  const tf=document.getElementById('tfi');
+  const tv=document.getElementById('tva');
+  if(tf)tf.className='to'+(f==='fixa'?' s'+cor:'');
+  if(tv)tv.className='to'+(f==='variavel'?' s'+cor:'');
+}
+
+function setLancTipo(t){
+  mLancTipo=t;
+  const te=document.getElementById('tent');
+  const ts=document.getElementById('tsai');
+  if(te)te.className='to'+(t==='e'?' sg':'');
+  if(ts)ts.className='to'+(t==='s'?' sr':'');
+}
+
+function saveModal(){
+  const desc=(document.getElementById('md')?.value||'').trim();
+  const val=parseFloat(document.getElementById('mv')?.value||'0');
+  const dia=parseInt(document.getElementById('mdia')?.value||'1');
+  if(!desc||!(val>0)){alert('Preencha descrição e valor.');return}
+
+  if(mTipo==='rec'){
+    db.receitas.push({id:nid++,desc,val,freq:mFreq,dia:dia||1,cat:document.getElementById('mcat').value});
+  }else if(mTipo==='desp'){
+    db.despesas.push({id:nid++,desc,val:val,freq:mFreq,dia:dia||1,cat:document.getElementById('mcat').value});
+  }else if(mTipo==='div'){
+    const parc=parseFloat(document.getElementById('mparc')?.value||'0');
+    const tp=parseInt(document.getElementById('mtparc')?.value||'1');
+    const atu=parseInt(document.getElementById('matu')?.value||'1');
+    db.dividas.push({id:nid++,desc,total:parc*tp,parcela:parc,atual:atu,parc:tp,dia:dia||1,status:'ativa'});
+  }else if(mTipo==='lanc'){
+    if(!db.lancs)db.lancs=[];
+    db.lancs.push({id:nid++,desc,val,tipo:mLancTipo,dia:dia||1,mes:fm,ano:fy});
+  }
+  save();closeModal();renderAll();
+}
+
+function closeModal(){document.getElementById('mbg').classList.remove('open')}
+document.getElementById('mbg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+
+function del(col,id){
+  if(!confirm('Remover?'))return;
+  db[col]=db[col].filter(r=>r.id!==id);
+  save();renderAll();
+}
+function delLanc(id){
+  if(!confirm('Remover lançamento?'))return;
+  db.lancs=(db.lancs||[]).filter(l=>l.id!==id);
+  save();renderAll();
+}
+
+function renderAll(){renderFluxo();renderReceitas();renderDespesas();renderDividas();renderResumo()}
+renderAll();
+</script>
+</body>
+</html>
